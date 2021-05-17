@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.IExcelDao"><!--namespace写的是dao的全限定类名-->
+
+    <insert id="importExcelByListStudent" parameterType="List">
+        insert into student(s_id,s_name) values
+        <foreach collection="list" item="student" index="index" separator=","><!--若dao层传的参数只有一个,collection写关键字list(若为数组,写 array) index-在迭代过程中每次迭代到的位置-->
+            (#{student.id},#{student.name})
+        </foreach>
+    </insert>
+
+    <insert id="importExcelByListTeacher" parameterType="List">
+        insert into teacher(t_id,t_name) values
+        <foreach collection="list" item="teacher" index="index" separator=",">
+            (#{teacher.id},#{teacher.name})
+        </foreach>
+    </insert>
+
+    <insert id="importExcelByListCourse" parameterType="List">
+        insert into course(c_id,c_name,c_period,c_credit) values
+        <foreach collection="list" item="course" index="index" separator=",">
+            (#{course.id},#{course.name},#{course.period},#{course.credit})
+        </foreach>
+    </insert>
+
+
+</mapper>

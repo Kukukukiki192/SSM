@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.ICourseDao"><!--namespace写的是dao的全限定类名-->
+
+    <!--定义course表的resultMap-->
+    <resultMap id="courseMap" type="Course"><!--实体类别名不区分大小写-->
+        <id property="id" column="c_id"></id>
+        <result property="name" column="c_name"></result>
+        <result property="period" column="c_period"></result>
+        <result property="credit" column="c_credit"></result>
+        <!--配置student集合的映射-->
+        <collection property="students" ofType="Student" javaType="List">
+            <id property="id" column="s_id"></id><!--外键-->
+            <result property="name" column="s_name"></result>
+        </collection>
+        <!--配置teacher集合的映射-->
+        <collection property="teachers" ofType="Teacher" javaType="List">
+            <id property="id" column="t_id"></id><!--外键-->
+            <result property="name" column="t_name"></result>
+        </collection>
+    </resultMap>
+
+
+    <!--保存-->
+    <insert id="insert" parameterType="Course">
+        insert into course(c_id,c_name,c_period,c_credit) values(#{id},#{name},#{period},#{credit})
+    </insert>
+
+    <insert id="insertList" parameterType="List">
+        insert into course(c_id,c_name,c_period,c_credit) values
+        <foreach collection="list" item="student" index="index" separator=","><!--若dao层传的参数只有一个,collection写关键字list(若为数组,写 array) index-在迭代过程中每次迭代到的位置-->
+            (#{student.id},#{student.name},#{student.period},#{student.credit})
+        </foreach>
+    </insert>
+
+    <!--根据课程ID删除  同时级联删除选修课信息-->
+    <delete id="deleteById" parameterType="String">
+        delete from course where c_id=#{id}
+    </delete>
+
+    <!--根据课程ID更新-->
+    <update id="updateById" parameterType="Course">
+--         update course set c_name=#{name},c_period=#{period},c_credit=#{credit} where c_id=#{id}
+        update course
+        <set>
+            <if test="name!=null">c_name=#{name},</if>
+        </set>
+        where c_id=#{id}
+    </update>
+
+    <!--根据课程ID查询-->
+    <select id="selectById" parameterType="String" resultMap="courseMap">
+        select * from course where c_id=#{id}
+    </select>
+
+    <!--获取用户总记录条数-->
+    <select id="selectCount" resultType="int">
+        select count(id) from course
+    </select>
+
+    <!--查询所有课程信息-->
+    <select id="selectList" resultMap="courseMap">
+        select * from course
+    </select>
+
+    <!--查询所有课程及选修该课程的所有学生-->
+    <select id="selectSelection" resultMap="courseMap">
+        select c.*,s.*  from course c
+        LEFT OUTER JOIN selection sc ON c.c_id=sc.c_id
+        LEFT OUTER JOIN student s ON sc.s_id=s.s_id
+    </select>
+
+    <!--查询所有课程及教授该课程的所有教师-->
+    <select id="selectInstruction" resultMap="courseMap">
+        select c.*,t.*  from course c
+        LEFT OUTER JOIN instruction i ON c.c_id=i.c_id
+        LEFT OUTER JOIN teacher t ON i.t_id=t.t_id
+    </select>
+
+
+
+</mapper>

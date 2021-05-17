@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.ISelectionDao"><!--namespace写的是dao的全限定类名-->
+
+    <!--定义selection表的resultMap-->
+    <resultMap id="selectionMap" type="Selection"><!--实体类别名不区分大小写-->
+        <result property="sId" column="s_id"></result>
+        <result property="cId" column="c_id"></result>
+        <result property="year" column="sel_year"></result>
+        <result property="term" column="sel_term"></result>
+        <result property="grade" column="sel_grade"></result>
+    </resultMap>
+
+    <!--定义选修课查询结果的resultMap-->
+    <resultMap id="selectionVOMap" type="SelectionVO">
+        <result property="sId" column="s_id"></result>
+        <result property="sName" column="s_name"></result>
+        <result property="cId" column="c_id"></result>
+        <result property="cName" column="c_name"></result>
+        <result property="cPeriod" column="c_period"></result>
+        <result property="cCredit" column="c_credit"></result>
+        <result property="year" column="sel_year"></result>
+        <result property="term" column="sel_term"></result>
+        <result property="grade" column="sel_grade"></result>
+    </resultMap>
+
+    <!--插入一条选课记录-->
+    <insert id="insert" parameterType="Selection">
+        insert into selection(s_id,c_id,sel_year,sel_term,sel_grade) values(#{sId},#{cId},#{year},#{term},#{grade})
+    </insert>
+
+<!--    &lt;!&ndash;批量插入&ndash;&gt;-->
+<!--    <insert id="insertList" parameterType="List">-->
+<!--        insert into selection(s_id,c_id,sel_year,sel_term,sel_grade) values-->
+<!--        <foreach collection="list" item="selection" index="index" separator=",">-->
+<!--            (#{selection.s_id},#{selection.c_id},#{selection.sel_year},#{selection.sel_term},#{selection.sel_grade})-->
+<!--        </foreach>-->
+<!--    </insert>-->
+
+    <!--根据学生ID和课程ID删除-->
+    <delete id="deleteOne" parameterType="Selection">
+        delete from selection where s_id=#{sId} and c_id=#{cId}
+    </delete>
+
+    <!--根据学生ID和课程ID修改成绩-->
+    <update id="update" parameterType="Selection">
+        update selection
+        <set>
+            <if test="grade!=null">sel_grade=#{grade}</if>
+        </set>
+        where s_id=#{sId} and c_id=#{cId}
+    </update>
+
+    <!--根据学生ID和课程ID查询-->
+    <select id="selectOne" parameterType="Selection" resultMap="selectionMap">
+        select * from selection where s_id=#{sId} and c_id=#{cId}
+    </select>
+
+    <!--查询所有学生及其选修课信息 详细-->
+    <select id="selectSelection" resultMap="selectionVOMap">
+        select s.s_id, s.s_name, c.*, sc.sel_year, sc.sel_term, sc.sel_grade  from student s
+        LEFT OUTER JOIN selection sc ON s.s_id=sc.s_id
+        LEFT OUTER JOIN course c ON sc.c_id=c.c_id
+    </select>
+
+</mapper>

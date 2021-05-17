@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.IUserDao"><!--namespace写的是dao的全限定类名-->
+
+    <!--查询登录账户-->
+    <select id="selectOne" parameterType="User" resultType="User">
+        select * from user where username=#{username} AND password=#{password}
+    </select>
+
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.IStudentDao"><!--namespace写的是dao的全限定类名-->
+
+    <!--定义student表的resultMap-->
+    <resultMap id="studentMap" type="Student"><!--实体类别名不区分大小写-->
+        <id property="id" column="s_id"></id>
+        <result property="name" column="s_name"></result>
+        <!--配置course集合的映射-->
+        <collection property="courses" ofType="Course" javaType="List">
+            <id property="id" column="c_id"></id><!--外键-->
+            <result property="name" column="c_name"></result>
+            <result property="period" column="c_period"></result>
+            <result property="credit" column="c_credit"></result>
+        </collection>
+    </resultMap>
+
+    <!--定义选修课查询结果的resultMap-->
+    <resultMap id="selectionVOMap" type="SelectionVO">
+            <result property="sId" column="s_id"></result>
+            <result property="sName" column="s_name"></result>
+            <result property="cId" column="c_id"></result>
+            <result property="cName" column="c_name"></result>
+            <result property="cPeriod" column="c_period"></result>
+            <result property="cCredit" column="c_credit"></result>
+            <result property="year" column="sel_year"></result>
+            <result property="term" column="sel_term"></result>
+            <result property="grade" column="sel_grade"></result>
+    </resultMap>
+
+    <!--定义学分总数查询结果的resultMap-->
+    <resultMap id="creditsVOMap" type="CreditsVO">
+        <result property="sId" column="s_id"></result>
+        <result property="sName" column="s_name"></result>
+        <result property="credits" column="credits"></result>
+    </resultMap>
+
+    <!--保存-->
+    <insert id="insert" parameterType="Student">
+        <!--配置插入操作后,获取插入数据的id  keyProperty_id的属性名称_对应实体类 keyColumn_id列名_对应表 resultType_结果集类型  order_什么时候执行获取id操作 -->
+<!--        <selectKey keyProperty="id" keyColumn="id" resultType="int" order="AFTER">&lt;!&ndash;在保存后获取id&ndash;&gt;-->
+<!--            select last_insert_id()-->
+<!--        </selectKey>-->
+        insert into student(s_id,s_name) values(#{id},#{name})
+<!--        insert into student-->
+<!--        <trim prefix="(" suffix=")" suffixOverrides="," >-->
+<!--            <if test="id != null" >-->
+<!--                s_id,-->
+<!--            </if>-->
+<!--            <if test="name != null" >-->
+<!--                s_name,-->
+<!--            </if>-->
+<!--        </trim>-->
+<!--        <trim prefix="values (" suffix=")" suffixOverrides="," >-->
+<!--            <if test="id != null" >-->
+<!--                #{id},-->
+<!--            </if>-->
+<!--            <if test="name != null" >-->
+<!--                #{name},-->
+<!--            </if>-->
+<!--        </trim>-->
+    </insert>
+
+    <insert id="insertList" parameterType="List">
+        insert into student(s_id,s_name) values
+        <foreach collection="list" item="student" index="index" separator=","><!--若dao层传的参数只有一个,collection写关键字list(若为数组,写 array) index-在迭代过程中每次迭代到的位置-->
+            (#{student.id},#{student.name})
+        </foreach>
+    </insert>
+
+    <!--根据学生ID删除 同时级联删除选修课信息-->
+    <delete id="deleteById" parameterType="String">
+        delete from student where s_id=#{id}
+    </delete>
+
+    <!--根据学生ID更新-->
+    <update id="updateById" parameterType="Student">
+--         update student set s_name=#{name} where s_id=#{id}
+        update student
+        <set>
+            <if test="name!=null">s_name=#{name},</if>
+        </set>
+        where s_id=#{id}
+    </update>
+
+    <!--查询所有学生信息-->
+    <select id="selectList" resultMap="studentMap">
+        select * from student
+    </select>
+
+    <!--根据学生ID查询-->
+    <select id="selectById" parameterType="String" resultMap="studentMap">
+        select * from student where s_id=#{id}
+    </select>
+
+    <!--查询所有学生及其选修课信息-->
+    <select id="selectSelection" resultMap="studentMap">
+        select s.*, c.*  from student s
+        LEFT OUTER JOIN selection sc ON s.s_id=sc.s_id
+        LEFT OUTER JOIN course c ON sc.c_id=c.c_id
+    </select>
+
+
+
+<!--    &lt;!&ndash;根据QueryVo中的条件查询用户&ndash;&gt;-->
+<!--    <select id="findByVo" parameterType="QueryVo" resultType="User">-->
+<!--        select * from user where username like #{user.username}&lt;!&ndash;QueryVo中的user的username&ndash;&gt;-->
+<!--    </select>-->
+
+    <!--获取用户总记录条数-->
+<!--    <select id="findTotal" resultType="int">-->
+<!--        select count(id) from student-->
+<!--    </select>-->
+
+    <!--查询所有学生已修学分总数-->
+    <select id="selectCredits" resultMap="creditsVOMap">
+        select student.s_id, student.s_name, sum(c_credit) as credits
+        from student, course, selection
+        where  student.s_id=selection.s_id
+          and course.c_id= selection.c_id
+        group by selection.s_id
+    </select>
+
+
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--sql映射文件-->
+<mapper namespace="com.dao.ITeacherDao"><!--namespace写的是dao的全限定类名-->
+
+    <!--定义teacher表的resultMap-->
+    <resultMap id="teacherMap" type="Teacher"><!--实体类别名不区分大小写-->
+        <id property="id" column="t_id"></id>
+        <!--        <result property="no" column="t_no"></result>-->
+        <result property="name" column="t_name"></result>
+        <!--配置course集合的映射-->
+        <collection property="courses" ofType="Course" javaType="List">
+            <id property="id" column="c_id"></id><!--外键-->
+            <!--            <result property="no" column="c_no"></result>-->
+            <result property="name" column="c_name"></result>
+            <result property="period" column="c_period"></result>
+            <result property="credit" column="c_credit"></result>
+        </collection>
+    </resultMap>
+
+    <!--保存-->
+    <insert id="insert" parameterType="Teacher">
+        <!--配置插入操作后,获取插入数据的id  keyProperty_id的属性名称_对应实体类 keyColumn_id列名_对应表 resultType_结果集类型  order_什么时候执行获取id操作 -->
+        <!--        <selectKey keyProperty="id" keyColumn="id" resultType="int" order="AFTER">&lt;!&ndash;在保存后获取id&ndash;&gt;-->
+        <!--            select last_insert_id()-->
+        <!--        </selectKey>-->
+        insert into teacher(t_id,t_name) values(#{id},#{name})
+    </insert>
+
+    <insert id="insertList" parameterType="List">
+        insert into teacher(t_id,t_name) values
+        <foreach collection="list" item="teacher" index="index" separator=","><!--若dao层传的参数只有一个,collection写关键字list(若为数组,写 array) index-在迭代过程中每次迭代到的位置-->
+            (#{teacher.id},#{teacher.name})
+        </foreach>
+    </insert>
+
+    <!--根据教师ID删除-->
+    <delete id="deleteById" parameterType="String">
+        delete from teacher where t_id=#{id}
+    </delete>
+
+    <!--根据教师ID更新-->
+    <update id="updateById" parameterType="Teacher">
+--         update teacher set t_name=#{name} where t_id=#{id}
+        update teacher
+        <set>
+            <if test="name!=null">t_name=#{name},</if>
+        </set>
+        where t_id=#{id}
+    </update>
+
+    <!--根据教师ID查询-->
+    <select id="selectById" parameterType="String" resultMap="teacherMap">
+        select * from teacher where t_id=#{id}
+    </select>
+
+    <!--查询所有教师信息-->
+    <select id="selectList" resultMap="teacherMap">
+        select * from teacher
+    </select>
+
+    <!--获取用户总记录条数-->
+    <select id="selectCount" resultType="int">
+        select count(id) from teacher
+    </select>
+
+    <!--教师任课查询-->
+    <select id="selectInstruction" resultMap="teacherMap">
+        select t.*,c.*  from teacher t
+        LEFT OUTER JOIN instruction ins ON t.t_id=ins.t_id
+        LEFT OUTER JOIN course c ON ins.c_id=c.c_id
+
+        --         select u.*,a.ID as aid,a.UID,a.MONEY from user u LEFT OUTER JOIN account a ON a.UID=u.id
+--
+--         select r.ID as rid,r.ROLE_DESC,r.ROLE_NAME,u.* from role r
+--         LEFT OUTER JOIN user_role ur ON r.ID=ur.RID
+--         LEFT OUTER JOIN user u ON ur.UID=u.id
+    </select>
+
+</mapper>
